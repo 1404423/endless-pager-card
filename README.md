@@ -75,7 +75,9 @@ Open `docs/demo.html` in a browser (phone-sized window) from a local web server,
 
 ## Alternatives
 
-[simple-swipe-card](https://github.com/nutteloost/simple-swipe-card) and [swipe-card](https://github.com/bramkragten/swipe-card) are established swipe cards with more features (autoplay, pagination styles, ...). This card exists for one reason: smooth, native-feeling endless paging with native vertical scrolling inside each page on iOS.
+[simple-swipe-card](https://github.com/nutteloost/simple-swipe-card) and [swipe-card](https://github.com/bramkragten/swipe-card) are established swipe cards with more features (autoplay, pagination styles, ...).
+
+As far as I could tell from their documentation, simple-swipe-card's infinite loop is JavaScript-driven (it duplicates cards), and its native CSS scroll-snap mode disables looping. swipe-card is built on Swiper.js. This card fills that gap: endless paging on native scroll-snap, with native vertical scrolling inside each page. It is small and simple by design.
 
 ## About this project
 
