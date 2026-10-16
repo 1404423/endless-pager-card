@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="200" viewBox="0 0 720 200" font-family="sans-serif">
+<rect width="720" height="200" fill="#fdf6e3"/>
+<g fill="#eee8d5" stroke="#93a1a1"><rect x="20" y="40" width="130" height="120" rx="8"/><rect x="170" y="40" width="130" height="120" rx="8"/><rect x="320" y="40" width="130" height="120" rx="8" fill="#fdf6e3" stroke="#268bd2" stroke-width="3"/><rect x="470" y="40" width="130" height="120" rx="8"/><rect x="620" y="40" width="80" height="120" rx="8"/></g>
+<g fill="#586e75" font-size="14" text-anchor="middle"><text x="85" y="105">Page 1</text><text x="235" y="105">Page 2</text><text x="385" y="105">Page 3</text><text x="535" y="105">Page 1</text><text x="660" y="105">Page 2</text></g>
+<text x="360" y="22" text-anchor="middle" font-size="13" fill="#657b83">endless-pager-card: native scroll-snap strip, pages repeat, cards built lazily</text>
+<text x="360" y="186" text-anchor="middle" font-size="12" fill="#93a1a1">swipe left/right forever - scroll up/down inside each page</text>
+</svg>

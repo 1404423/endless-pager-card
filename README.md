@@ -1,5 +1,7 @@
 # Endless Pager Card
 
+![overview](docs/overview.svg)
+
 A Home Assistant dashboard card that lets you **swipe left and right between pages, endlessly**. Page 4 swipes on to page 1, and page 1 swipes back to page 4. Every page is any Lovelace card (or a stack of them) and **scrolls vertically on its own**.
 
 * The horizontal motion is the **browser's own scroll-snap scrolling**: momentum, snapping and the feel of an iOS scroll view, running off the main thread.
