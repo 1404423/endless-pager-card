@@ -1,0 +1,23 @@
+name: Check
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: JavaScript syntax
+        run: node --check dist/remote-pager-card.js
+      - name: Browser logic test (headless Chromium, mobile size)
+        run: |
+          npm install --no-save playwright@1.48.2
+          npx playwright install --with-deps chromium
+          (python3 -m http.server 8000 &) ; sleep 1
+          node tests/run-logic-test.mjs

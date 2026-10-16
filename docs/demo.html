@@ -1,0 +1,18 @@
+<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>remote-pager-card demo (no Home Assistant needed)</title>
+<style>body{margin:0;font-family:-apple-system,system-ui,sans-serif;background:#eee8d5;color:#073642}
+.c{background:#fdf6e3;border-radius:14px;padding:14px 16px;margin:0 0 8px}</style>
+<script>
+// A stand-in for Home Assistant's card helpers: every "card" is a plain div. Real use: type: custom:remote-pager-card in a Lovelace dashboard.
+window.loadCardHelpers = async () => ({ createCardElement: async (cfg) => {
+  const d = document.createElement("div");
+  d.innerHTML = "<div class=c><b>" + cfg.title + "</b><br>" + (cfg.long ? "scrolls vertically" : "fits the screen: vertical drags are locked") + "</div>" +
+    (cfg.long ? Array.from({length: 24}, (_, i) => "<div class=c>row " + (i + 1) + "</div>").join("") : "");
+  return d; } });
+</script>
+<script src="../dist/remote-pager-card.js"></script>
+<remote-pager-card id=p></remote-pager-card>
+<script>
+document.getElementById("p").setConfig({top: "0px", debug: new URLSearchParams(location.search).has("debug"),
+  pages: [{title: "Page 1"}, {title: "Page 2", long: true}, {title: "Page 3"}, {title: "Page 4", long: true}]});
+</script>
