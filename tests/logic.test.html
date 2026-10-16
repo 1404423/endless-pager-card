@@ -1,9 +1,9 @@
-<!doctype html><meta charset=utf-8><title>remote-pager-card logic test</title>
+<!doctype html><meta charset=utf-8><title>endless-pager-card logic test</title>
 <script>
 window.loadCardHelpers = async () => ({ createCardElement: async (cfg) => { await new Promise(r => setTimeout(r, 5)); const d = document.createElement("div"); d.textContent = cfg.title; d.style.height = "100px"; return d; } });
 </script>
-<script src="../dist/remote-pager-card.js"></script>
-<remote-pager-card id=p></remote-pager-card>
+<script src="../dist/endless-pager-card.js"></script>
+<endless-pager-card id=p></endless-pager-card>
 <script>
 // Open in a browser (mobile-size window). window.__result is "PASS" or a message when the checks below are done (about 12 s).
 (async () => {

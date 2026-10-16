@@ -1,12 +1,12 @@
-/* remote-pager-card 1.0.0 (developed as v1-v16 in 2026-10) - "practically infinite" horizontal pager on NATIVE scrolling, with NO jump in normal use.
+/* endless-pager-card 1.0.0 (developed as v1-v16 in 2026-10) - "practically infinite" horizontal pager on NATIVE scrolling, with NO jump in normal use.
    Idea: a jump is only needed because a strip has an end. So make the strip very long instead (n pages repeated up to ~200 slots, you start in the middle:
    ~100 swipes to either side before an end), and keep it cheap by creating the real cards LAZILY: all slots are empty placeholders (a div each), the cards
    are built only for the slots near the viewport (+-3) and dropped again when far (+-8). Slot s shows page s mod n; the dots show s mod n.
    Nothing ever touches the scroll position while you swipe, and in normal use nothing touches it at all. (A safety jump back to the middle exists for the day someone swipes
    100 pages in one direction; it only runs when idle and is invisible because slot s and slot s+-k*n show the same page.)
    Vertical: each page is a scroll container; a page whose content has (almost) no overflow is locked by CSS (overflow-y:hidden + touch-action:pan-x).
-   Config: type: custom:remote-pager-card / pages: [card configs] / loop: true / top: <css length> / debug: false */
-class RemotePagerCard extends HTMLElement {
+   Config: type: custom:endless-pager-card / pages: [card configs] / loop: true / top: <css length> / debug: false */
+class EndlessPagerCard extends HTMLElement {
   setConfig(config) {
     if (!config || !Array.isArray(config.pages) || !config.pages.length) throw new Error("pages: [..] is required");
     this._config = { loop: true, top: "calc(56px + env(safe-area-inset-top, 0px))", ...config };
@@ -53,7 +53,7 @@ class RemotePagerCard extends HTMLElement {
     this._build_r = this._config.build_radius ?? 3; this._keep_r = Math.max(this._build_r + 1, this._config.keep_radius ?? 8);
     this._dots = [...dots.children]; this._n = n; this._N = N; this._loop = loop; this._pages = []; this._cards = new Map(); this._making = new Set();
     this._key = this._config.key || (JSON.stringify(this._config.pages).length + ":" + JSON.stringify(this._config.pages).slice(0, 120));
-    const saved = (RemotePagerCard._mem && RemotePagerCard._mem.get(this._key)) || 0;       // page you were on when this card was last alive
+    const saved = (EndlessPagerCard._mem && EndlessPagerCard._mem.get(this._key)) || 0;       // page you were on when this card was last alive
     this._mid = (loop ? Math.floor(N / 2 / n) * n : 0) + (saved % n);                      // start slot: in the middle of the strip, on that page
     const frag = document.createDocumentFragment();
     for (let s = 0; s < N; s++) { const page = document.createElement("div"); page.className = "page"; frag.appendChild(page); this._pages.push(page); }
@@ -109,7 +109,7 @@ class RemotePagerCard extends HTMLElement {
   _tick() {
     if (!this._ready) { this._start(); return; }
     if ( !this._vp.clientWidth || this._hidden || (this._restoring && performance.now() - this._restoring < 400)) return;
-    const s = this._slot(); this._lastSlot = s; (RemotePagerCard._mem = RemotePagerCard._mem || new Map()).set(this._key, s % this._n);   // (also saved here: scroll events can be throttled)
+    const s = this._slot(); this._lastSlot = s; (EndlessPagerCard._mem = EndlessPagerCard._mem || new Map()).set(this._key, s % this._n);   // (also saved here: scroll events can be throttled)
     const left = this._vp.scrollLeft, moved = left !== this._lastLeft; this._lastLeft = left; if (moved) this._lastAct = performance.now();
     if (!this._down) this._ensureAround(s, this._build_r);                    // cards for the next swipes are built between swipes, never during one
     const idle = !this._down && performance.now() - (this._lastAct || 0) > 400;
@@ -136,6 +136,6 @@ class RemotePagerCard extends HTMLElement {
       "\nscrollLeft " + Math.round(vp.scrollLeft) + "  clientW " + vp.clientWidth + "  ready " + !!this._ready + "  hidden " + !!this._hidden + "  lastSlot " + this._lastSlot; }, 300);
   }
 }
-customElements.define("remote-pager-card", RemotePagerCard);
+customElements.define("endless-pager-card", EndlessPagerCard);
 window.customCards = window.customCards || [];
-window.customCards.push({ type: "remote-pager-card", name: "Remote Pager Card", description: "Infinite horizontal pager with native scrolling (scroll-snap) and native vertical scrolling inside each page" });
+window.customCards.push({ type: "endless-pager-card", name: "Endless Pager Card", description: "Infinite horizontal pager with native scrolling (scroll-snap) and native vertical scrolling inside each page" });

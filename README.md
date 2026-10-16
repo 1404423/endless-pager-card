@@ -1,4 +1,4 @@
-# Remote Pager Card
+# Endless Pager Card
 
 A Home Assistant dashboard card that lets you **swipe left and right between pages, endlessly**. Page 4 swipes on to page 1, and page 1 swipes back to page 4. Every page is any Lovelace card (or a stack of them) and **scrolls vertically on its own**.
 
@@ -7,11 +7,11 @@ A Home Assistant dashboard card that lets you **swipe left and right between pag
 * **Vertical scrolling is native too.** A page whose content fits is *locked* (no vertical drag, no rubber band); a page that is taller scrolls normally.
 * Remembers the page when you leave the dashboard tab and come back (Home Assistant detaches the card when you switch tabs).
 
-Built for a phone remote-control dashboard (aircon / lights / TV / projector pages) and tested on an iPhone with the Home Assistant Companion app.
+Originally built for a phone remote-control dashboard (aircon / lights / TV / projector pages) and tested on an iPhone with the Home Assistant Companion app.
 
 ## Install
 
-HACS: *HACS → ⋮ → Custom repositories* → add `https://github.com/1404423/lovelace-remote-pager-card` as type **Dashboard**, install it. Manual: copy `dist/remote-pager-card.js` to `<config>/www/` and add it as a dashboard resource (`/local/remote-pager-card.js`, type *JavaScript module*).
+HACS: *HACS → ⋮ → Custom repositories* → add `https://github.com/1404423/endless-pager-card` as type **Dashboard**, install it. Manual: copy `dist/endless-pager-card.js` to `<config>/www/` and add it as a dashboard resource (`/local/endless-pager-card.js`, type *JavaScript module*).
 
 ## Use
 
@@ -22,7 +22,7 @@ views:
   - title: Remote
     type: panel
     cards:
-      - type: custom:remote-pager-card
+      - type: custom:endless-pager-card
         pages:
           - type: vertical-stack        # page 1: any card, or a stack of cards
             cards:
@@ -99,7 +99,7 @@ Home Assistant のダッシュボード用カードです。**左右にスワイ
 スマホのリモコン画面(エアコン、照明、テレビ、プロジェクター)用に作り、iPhone の HA コンパニオンアプリで確認しています。
 
 ### 使い方
-HACS の「カスタムリポジトリ」に `https://github.com/1404423/lovelace-remote-pager-card` を、種類「ダッシュボード」で追加して、インストールします。**パネル表示**のビューに、このカードだけを置き、`pages` に各ページのカードを並べます(上の YAML を参照)。
+HACS の「カスタムリポジトリ」に `https://github.com/1404423/endless-pager-card` を、種類「ダッシュボード」で追加して、インストールします。**パネル表示**のビューに、このカードだけを置き、`pages` に各ページのカードを並べます(上の YAML を参照)。
 
 ### 注意
 * iPhone と、パソコンのブラウザでの試験のみです。**Android は未確認**です。
