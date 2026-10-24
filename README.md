@@ -13,7 +13,7 @@ Originally built for a phone remote-control dashboard (aircon / lights / TV / pr
 
 ## Install
 
-HACS: *HACS → ⋮ → Custom repositories* → add `https://github.com/1404423/endless-pager-card` as type **Dashboard**, install it. Manual: copy `dist/endless-pager-card.js` to `<config>/www/` and add it as a dashboard resource (`/local/endless-pager-card.js`, type *JavaScript module*).
+HACS: search for **Endless Pager Card** in *HACS → Dashboard* and install it. Until it shows up in the search, add it by hand: *HACS → ⋮ → Custom repositories* → `https://github.com/1404423/endless-pager-card`, type **Dashboard**. Manual: copy `dist/endless-pager-card.js` to `<config>/www/` and add it as a dashboard resource (`/local/endless-pager-card.js`, type *JavaScript module*).
 
 ## Use
 
