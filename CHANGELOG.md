@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.1 (2026-10-24)
+Security hardening from the HACS review: the `top` option was pasted into the card's HTML template as text. It is now passed as a CSS variable (`--endless-pager-top`, set with `style.setProperty`), so a crafted value can no longer become markup. Behaviour is unchanged; the logic test passes at phone size.
+
 ## 1.0.0 (2026-10-16)
 First public release. Developed and tested over 16 iterations on an iPhone (Home Assistant Companion app) against a smaller, finite pager first.
 - Infinite horizontal paging on native `scroll-snap` scrolling; ~200 slots with lazily built cards (no clones, no jumps in normal use).

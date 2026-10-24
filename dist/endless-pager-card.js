@@ -1,4 +1,4 @@
-/* endless-pager-card 1.0.0 (developed as v1-v16 in 2026-10) - "practically infinite" horizontal pager on NATIVE scrolling, with NO jump in normal use.
+/* endless-pager-card 1.0.1 (developed as v1-v16 in 2026-10) - "practically infinite" horizontal pager on NATIVE scrolling, with NO jump in normal use.
    Idea: a jump is only needed because a strip has an end. So make the strip very long instead (n pages repeated up to ~200 slots, you start in the middle:
    ~100 swipes to either side before an end), and keep it cheap by creating the real cards LAZILY: all slots are empty placeholders (a div each), the cards
    are built only for the slots near the viewport (+-3) and dropped again when far (+-8). Slot s shows page s mod n; the dots show s mod n.
@@ -37,7 +37,7 @@ class EndlessPagerCard extends HTMLElement {
     const N = loop ? n * Math.max(3, Math.ceil((this._config.slots || 200) / n)) : n;                 // number of slots (about `slots`, default 200)
     root.innerHTML = `
       <style>
-        :host { display: block; position: fixed; top: ${this._config.top}; left: 0; right: 0; bottom: 0; overflow: hidden; }
+        :host { display: block; position: fixed; top: var(--endless-pager-top); left: 0; right: 0; bottom: 0; overflow: hidden; }
         .vp { height: 100%; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior: none; scrollbar-width: none; touch-action: pan-x pan-y; }
         .vp::-webkit-scrollbar, .page::-webkit-scrollbar { display: none; }
         .page { position: relative; flex: 0 0 100%; width: 100%; height: 100%; box-sizing: border-box;      /* relative: the containing block of the cards' own absolute-positioned page titles */ scroll-snap-align: start; scroll-snap-stop: always;
@@ -48,6 +48,7 @@ class EndlessPagerCard extends HTMLElement {
         .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--secondary-text-color, #888); opacity: .35; }
         .dot.on { opacity: 1; background: var(--primary-color, #03a9f4); }
       </style><div class="vp"></div><div class="dots"></div>`;
+    this.style.setProperty("--endless-pager-top", String(this._config.top));     // a CSS variable, not text pasted into the template: `top` can never become markup
     const vp = this._vp = root.querySelector(".vp"), dots = root.querySelector(".dots");
     for (let i = 0; i < n; i++) dots.appendChild(Object.assign(document.createElement("div"), { className: "dot" }));
     this._build_r = this._config.build_radius ?? 3; this._keep_r = Math.max(this._build_r + 1, this._config.keep_radius ?? 8);
