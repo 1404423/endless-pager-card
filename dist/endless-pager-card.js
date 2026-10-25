@@ -1,4 +1,4 @@
-/* endless-pager-card 1.0.1 (developed as v1-v16 in 2026-10) - "practically infinite" horizontal pager on NATIVE scrolling, with NO jump in normal use.
+/* endless-pager-card 1.1.0 (developed as v1-v16 in 2026-10) - "practically infinite" horizontal pager on NATIVE scrolling, with NO jump in normal use.
    Idea: a jump is only needed because a strip has an end. So make the strip very long instead (n pages repeated up to ~200 slots, you start in the middle:
    ~100 swipes to either side before an end), and keep it cheap by creating the real cards LAZILY: all slots are empty placeholders (a div each), the cards
    are built only for the slots near the viewport (+-3) and dropped again when far (+-8). Slot s shows page s mod n; the dots show s mod n.
@@ -7,6 +7,34 @@
    Vertical: each page is a scroll container; a page whose content has (almost) no overflow is locked by CSS (overflow-y:hidden + touch-action:pan-x).
    Config: type: custom:endless-pager-card / pages: [card configs] / loop: true / top: <css length> / debug: false */
 class EndlessPagerCard extends HTMLElement {
+  static getStubConfig() {             // what the card picker adds: two small pages to start from
+    return { type: "custom:endless-pager-card", pages: [{ type: "markdown", content: "Page 1" }, { type: "markdown", content: "Page 2" }] };
+  }
+  static getConfigElement() { return document.createElement("endless-pager-card-editor"); }
+  static getConfigForm() {             // the visual editor (Home Assistant's own form); `pages` is a YAML box in it (the list of card configurations)
+    const num = (name, min, max) => ({ name, selector: { number: { min, max, mode: "box" } } });
+    const labels = { pages: "Pages (list of cards)", loop: "Endless paging", top: "Top offset (CSS length)", slots: "Strip length (slots)", build_radius: "Build radius", keep_radius: "Keep radius", debug: "Debug panel" };
+    const helpers = {
+      pages: "One card configuration per page, as a YAML list. Add an item to add a page.",
+      loop: "Off = a normal strip with two ends. Default: on.",
+      top: "Where the pager starts, below the Home Assistant header. Default: calc(56px + env(safe-area-inset-top, 0px)).",
+      slots: "About how many slots the strip has; you start in the middle. Default: 200.",
+      build_radius: "Cards are built for the slots this close to the current one. Default: 3.",
+      keep_radius: "Cards farther away are dropped again to free memory. Default: 8.",
+      debug: "Shows a small panel with slot, cards alive and scroll position.",
+    };
+    return {
+      schema: [
+        { name: "pages", selector: { object: {} } },
+        { name: "loop", selector: { boolean: {} } },
+        { name: "top", selector: { text: {} } },
+        num("slots", 20, 2000), num("build_radius", 1, 10), num("keep_radius", 2, 30),
+        { name: "debug", selector: { boolean: {} } },
+      ],
+      computeLabel: (schema) => labels[schema.name] || schema.name,
+      computeHelper: (schema) => helpers[schema.name],
+    };
+  }
   setConfig(config) {
     if (!config || !Array.isArray(config.pages) || !config.pages.length) throw new Error("pages: [..] is required");
     this._config = { loop: true, top: "calc(56px + env(safe-area-inset-top, 0px))", ...config };
@@ -22,6 +50,8 @@ class EndlessPagerCard extends HTMLElement {
   disconnectedCallback() { clearInterval(this._poll); this._poll = null; this._ready = false; if (this._ro) this._ro.disconnect(); this._lockDocument(false); }
   _startPoll() { if (!this._poll) this._poll = setInterval(() => this._tick(), 150); if (this._ro && this._vp) { this._ro.disconnect(); this._ro.observe(this._vp); } }
   set hass(h) { this._hass = h; if (this._built) this._push(); }
+  set preview(v) { this._preview = !!v; this.toggleAttribute("preview", !!v); }          // Home Assistant sets it in the card editor / picker: show a small box there, not the whole panel
+  get preview() { return !!this._preview; }
   getCardSize() { return 8; }
 
   _lockDocument(on) {
@@ -38,6 +68,7 @@ class EndlessPagerCard extends HTMLElement {
     root.innerHTML = `
       <style>
         :host { display: block; position: fixed; top: var(--endless-pager-top); left: 0; right: 0; bottom: 0; overflow: hidden; }
+        :host([preview]) { position: relative; top: auto; left: auto; right: auto; bottom: auto; height: 420px; border-radius: 12px; }
         .vp { height: 100%; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; overscroll-behavior: none; scrollbar-width: none; touch-action: pan-x pan-y; }
         .vp::-webkit-scrollbar, .page::-webkit-scrollbar { display: none; }
         .page { position: relative; flex: 0 0 100%; width: 100%; height: 100%; box-sizing: border-box;      /* relative: the containing block of the cards' own absolute-positioned page titles */ scroll-snap-align: start; scroll-snap-stop: always;
@@ -138,5 +169,61 @@ class EndlessPagerCard extends HTMLElement {
   }
 }
 customElements.define("endless-pager-card", EndlessPagerCard);
+
+// The card editor: a list of the pages with add / delete / move buttons, the other options as Home Assistant's own form, `pages` as YAML in a fold.
+class EndlessPagerCardEditor extends HTMLElement {
+  setConfig(config) {
+    this._config = config; if (!this._root) this._init();
+    for (const f of this._forms) f.data = config;
+    this._rows();
+  }
+  set hass(h) { this._hass = h; if (this._forms) for (const f of this._forms) f.hass = h; }
+  _init() {
+    const root = this._root = this.attachShadow({ mode: "open" }), form = EndlessPagerCard.getConfigForm();
+    root.innerHTML = `<style>
+      .row { display: flex; align-items: center; gap: 4px; padding: 4px 0; border-bottom: 1px solid var(--divider-color, #ddd); }
+      .row span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      button { font: inherit; min-width: 40px; min-height: 40px; border: 1px solid var(--divider-color, #ccc); border-radius: 8px; background: var(--card-background-color, #fff); color: var(--primary-text-color, #000); }
+      button:disabled { opacity: .35; }
+      .add { width: 100%; margin: 8px 0; color: var(--primary-color, #03a9f4); }
+      summary { margin: 8px 0; cursor: pointer; }
+    </style><div class="rows"></div><button class="add">+ Add page</button><details><summary>Edit pages as YAML</summary><ha-form class="fp"></ha-form></details><ha-form class="fo"></ha-form>`;
+    const mk = (cls, schema) => {
+      const f = root.querySelector(cls); f.schema = schema; f.computeLabel = form.computeLabel; f.computeHelper = form.computeHelper; if (this._hass) f.hass = this._hass;
+      f.addEventListener("value-changed", (ev) => { ev.stopPropagation(); this._emit({ ...ev.detail.value }); }); return f;
+    };
+    this._forms = [mk(".fp", form.schema.filter((s) => s.name === "pages")), mk(".fo", form.schema.filter((s) => s.name !== "pages"))];
+    root.querySelector(".add").addEventListener("click", () => { const p = this._pages(); this._emit({ ...this._config, pages: [...p, { type: "markdown", content: "Page " + (p.length + 1) }] }); });
+  }
+  _label(i, p) { return (i + 1) + ". " + ((p && p.type) || "card") + (p && p.content ? " - " + String(p.content).slice(0, 24) : ""); }
+  _pages() { return Array.isArray(this._config.pages) ? this._config.pages : []; }
+  _emit(config, rebuild = true) {
+    this._config = config; for (const f of this._forms) f.data = config; if (rebuild) { this._open = -1; this._rows(); }
+    this.dispatchEvent(new CustomEvent("config-changed", { detail: { config }, bubbles: true, composed: true }));
+  }
+  _rows() {
+    const box = this._root.querySelector(".rows"), pages = this._pages(); box.textContent = "";
+    pages.forEach((p, i) => {
+      const row = document.createElement("div"); row.className = "row";
+      const label = document.createElement("span"); label.textContent = this._label(i, p); row.appendChild(label);
+      const btn = (text, title, disabled, fn) => { const b = document.createElement("button"); b.textContent = text; b.title = title; b.disabled = disabled; b.addEventListener("click", fn); row.appendChild(b); };
+      const move = (d) => { const a = [...pages]; [a[i], a[i + d]] = [a[i + d], a[i]]; this._emit({ ...this._config, pages: a }); };
+      btn("\u270E", "Edit this page (YAML)", false, () => { this._open = this._open === i ? -1 : i; this._rows(); });
+      btn("\u2191", "Move up", i === 0, () => move(-1)); btn("\u2193", "Move down", i === pages.length - 1, () => move(1));
+      btn("\u{1F5D1}", "Delete page", pages.length < 2, () => this._emit({ ...this._config, pages: pages.filter((_, k) => k !== i) }));
+      box.appendChild(row);
+      if (this._open === i) {                 // the YAML of this one page, right under its row; typing in it does not rebuild the list (keeps the focus)
+        const f = document.createElement("ha-form"); f.className = "fpage"; f.data = { page: p }; f.schema = [{ name: "page", selector: { object: {} } }];
+        f.computeLabel = () => "Page " + (i + 1) + " (card configuration)"; if (this._hass) f.hass = this._hass;
+        f.addEventListener("value-changed", (ev) => {
+          ev.stopPropagation(); const a = [...this._pages()]; a[i] = ev.detail.value.page; this._emit({ ...this._config, pages: a }, false);
+          label.textContent = this._label(i, a[i]);
+        });
+        box.appendChild(f);
+      }
+    });
+  }
+}
+customElements.define("endless-pager-card-editor", EndlessPagerCardEditor);
 window.customCards = window.customCards || [];
-window.customCards.push({ type: "endless-pager-card", name: "Endless Pager Card", description: "Infinite horizontal pager with native scrolling (scroll-snap) and native vertical scrolling inside each page" });
+window.customCards.push({ type: "endless-pager-card", name: "Endless Pager Card", description: "Infinite horizontal pager with native scrolling (scroll-snap) and native vertical scrolling inside each page", preview: false, documentationURL: "https://github.com/1404423/endless-pager-card" });

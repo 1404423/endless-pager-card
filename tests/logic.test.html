@@ -16,6 +16,35 @@ window.loadCardHelpers = async () => ({ createCardElement: async (cfg) => { awai
   for (let k = 1; k <= 6; k++) { vp.scrollTo({left: vp.scrollLeft - w, behavior: "instant"}); await wait(500); if (page() !== "ABCD"[(6 - k) % 4]) fail.push("backward " + k + " shows " + page()); }
   await wait(1500); if (p._cards.size > 11) fail.push("too many cards alive: " + p._cards.size);
   if (p._jumps) fail.push("unexpected jump: " + p._jumps);
+  const C = customElements.get("endless-pager-card"), form = C.getConfigForm(), known = ["pages", "loop", "top", "slots", "build_radius", "keep_radius", "debug"];
+  try { document.createElement("endless-pager-card").setConfig(C.getStubConfig()); } catch (e) { fail.push("stub config rejected: " + e.message); }
+  if (!C.getStubConfig().pages.length) fail.push("stub config has no pages");
+  for (const f of form.schema) { if (!known.includes(f.name)) fail.push("editor field is not an option: " + f.name); if (form.computeLabel(f) === f.name) fail.push("no label: " + f.name); if (!form.computeHelper(f)) fail.push("no helper: " + f.name); }
+  if (form.schema.length !== known.length) fail.push("editor does not cover every option");
+  const reg = window.customCards.find((c) => c.type === "endless-pager-card");
+  if (!reg || reg.preview !== false || !reg.documentationURL) fail.push("customCards entry incomplete");
+  { const x = document.createElement("endless-pager-card"); window.__x = 0; x.setConfig({top: '0}</style><img src=x onerror="window.__x=1">', pages: [{title: "A"}]}); document.body.appendChild(x); await wait(800);
+    if (window.__x || x.shadowRoot.querySelector("img,script")) fail.push("top reached the markup"); x.remove(); }
+  { const x = document.createElement("endless-pager-card"); x.setConfig({top: "0px", pages: [{title: "A"}]}); document.body.appendChild(x); await wait(500);
+    if (getComputedStyle(x).position !== "fixed") fail.push("normal card is not fixed: " + getComputedStyle(x).position);
+    x.preview = true; await wait(100); const cs = getComputedStyle(x);
+    if (cs.position !== "relative" || cs.height !== "420px") fail.push("preview card is not a small box: " + cs.position + " " + cs.height);
+    x.preview = false; await wait(100); if (getComputedStyle(x).position !== "fixed") fail.push("card did not go back to fixed"); x.remove(); }
+  { const ed = C.getConfigElement(), got = []; ed.addEventListener("config-changed", (e) => got.push(e.detail.config)); document.body.appendChild(ed);
+    ed.setConfig({type: "custom:endless-pager-card", pages: [{type: "markdown", content: "<img src=x onerror=window.__x=3>"}, {type: "markdown", content: "B"}]});
+    const btns = () => [...ed.shadowRoot.querySelectorAll(".row button")], q = (c) => ed.shadowRoot.querySelector(c);   // each row has 4 buttons: edit, up, down, delete
+    if (ed.shadowRoot.querySelector(".rows img")) fail.push("editor row reached the markup");
+    q(".add").click(); if (got.at(-1).pages.length !== 3 || got.at(-1).pages[2].content !== "Page 3") fail.push("add page failed");
+    btns()[7].click(); if (got.at(-1).pages.length !== 2) fail.push("delete page failed");          // row 2's delete
+    btns()[5].click(); if (got.at(-1).pages[0].content !== "Page 3") fail.push("move up failed");   // row 2's up
+    btns()[0].click(); const pf = q(".fpage"); if (!pf) fail.push("page YAML did not open");
+    if (pf) { const n = got.length; pf.dispatchEvent(new CustomEvent("value-changed", {detail: {value: {page: {type: "markdown", content: "Z"}}}}));
+      if (got.length !== n + 1 || got.at(-1).pages[0].content !== "Z") fail.push("page YAML edit lost");
+      if (q(".fpage") !== pf) fail.push("editing the page YAML rebuilt the list");
+      if (!ed.shadowRoot.querySelector(".row span").textContent.includes("Z")) fail.push("row label not updated"); }
+    btns()[3].click(); if (got.at(-1).pages.length !== 1) fail.push("delete to one page failed");     // row 1's delete
+    if (!btns()[3].disabled) fail.push("the last page can be deleted"); if (got.at(-1).type !== "custom:endless-pager-card") fail.push("type lost");
+    ed.remove(); }
   window.__result = fail.length ? "FAIL: " + fail.join("; ") : "PASS"; document.title = window.__result;
 })();
 </script>

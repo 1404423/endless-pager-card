@@ -17,6 +17,16 @@ HACS: search for **Endless Pager Card** in *HACS → Dashboard* and install it. 
 
 ## Use
 
+### Getting started
+
+1. Create a new view (the tab bar's **+**) and set its layout to **Panel (single card)** in the view settings. The card needs a panel view: it fills the whole panel.
+2. In the view, press **Add card**, open the **By card** tab and search for *Endless*. Pick **Endless Pager Card**: it starts with two example pages.
+3. In the card editor the pages are a list: **+ Add page**, ↑ ↓ to move, 🗑 to delete, ✎ to edit the card of that page as YAML. Save.
+
+Each page is an ordinary card configuration. To build a page with the normal card editor, make the card in a temporary view, copy its YAML from *Show code editor* and paste it into the page.
+
+### YAML
+
 Put the card alone in a **panel** view (it positions itself under the Home Assistant header):
 
 ```yaml
@@ -37,6 +47,8 @@ views:
           - type: markdown              # page 3
             content: Another page
 ```
+
+All options can also be changed in the card editor. There the pages are a list with add, delete, move and edit buttons (edit opens the YAML of that page under its row); all pages as YAML are in a fold below it.
 
 | Option | Default | Meaning |
 |---|---|---|
@@ -103,7 +115,7 @@ Home Assistant のダッシュボード用カードです。**左右にスワイ
 スマホのリモコン画面(エアコン、照明、テレビ、プロジェクター)用に作り、iPhone の HA コンパニオンアプリで確認しています。
 
 ### 使い方
-HACS の「カスタムリポジトリ」に `https://github.com/1404423/endless-pager-card` を、種類「ダッシュボード」で追加して、インストールします。**パネル表示**のビューに、このカードだけを置き、`pages` に各ページのカードを並べます(上の YAML を参照)。
+HACS で「Endless Pager Card」を検索して、インストールします(検索に出ないときは、カスタムリポジトリに `https://github.com/1404423/endless-pager-card` を、種類「ダッシュボード」で追加します)。ビューを作り、レイアウトを**パネル(シングルカード)**にします。「カードを追加」の「カード別」で「Endless」を検索し、「Endless Pager Card」を選びます。編集画面で、ページの追加(+ Add page)、並べ替え(↑ ↓)、削除(🗑)、そのページのカードの YAML の編集(✎)ができます。各ページは、ふつうのカードの設定です。
 
 ### 注意
 * iPhone と、パソコンのブラウザでの試験のみです。**Android は未確認**です。

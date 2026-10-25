@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 (2026-10-25)
+* Visual editor: the pages are a list with add, delete, move and edit buttons (the edit button opens the YAML of that one page under its row; all pages as YAML stay available in a fold); `loop`, `top`, `slots`, `build_radius`, `keep_radius` and `debug` can be changed in the card editor (Home Assistant's own form).
+* The card picker adds the card with two small example pages (`getStubConfig`), instead of an error about missing `pages`.
+* The card picker entry has `preview: false` (the card fills the whole panel, so it cannot be shown as a small preview) and a link to the documentation.
+* The logic test now also checks the stub config, the editor fields and the registration.
+
 ## 1.0.1 (2026-10-24)
 Security hardening from the HACS review: the `top` option was pasted into the card's HTML template as text. It is now passed as a CSS variable (`--endless-pager-top`, set with `style.setProperty`), so a crafted value can no longer become markup. Behaviour is unchanged; the logic test passes at phone size.
 
