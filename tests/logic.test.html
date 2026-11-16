@@ -16,7 +16,7 @@ window.loadCardHelpers = async () => ({ createCardElement: async (cfg) => { awai
   for (let k = 1; k <= 6; k++) { vp.scrollTo({left: vp.scrollLeft - w, behavior: "instant"}); await wait(500); if (page() !== "ABCD"[(6 - k) % 4]) fail.push("backward " + k + " shows " + page()); }
   await wait(1500); if (p._cards.size > 11) fail.push("too many cards alive: " + p._cards.size);
   if (p._jumps) fail.push("unexpected jump: " + p._jumps);
-  const C = customElements.get("endless-pager-card"), form = C.getConfigForm(), known = ["pages", "loop", "top", "slots", "build_radius", "keep_radius", "debug"];
+  const C = customElements.get("endless-pager-card"), form = C.getConfigForm(), known = ["pages", "loop", "top", "slots", "build_radius", "keep_radius", "debug", "edge_width"];
   try { document.createElement("endless-pager-card").setConfig(C.getStubConfig()); } catch (e) { fail.push("stub config rejected: " + e.message); }
   if (!C.getStubConfig().pages.length) fail.push("stub config has no pages");
   for (const f of form.schema) { if (!known.includes(f.name)) fail.push("editor field is not an option: " + f.name); if (form.computeLabel(f) === f.name) fail.push("no label: " + f.name); if (!form.computeHelper(f)) fail.push("no helper: " + f.name); }
@@ -30,6 +30,23 @@ window.loadCardHelpers = async () => ({ createCardElement: async (cfg) => { awai
     x.preview = true; await wait(100); const cs = getComputedStyle(x);
     if (cs.position !== "relative" || cs.height !== "420px") fail.push("preview card is not a small box: " + cs.position + " " + cs.height);
     x.preview = false; await wait(100); if (getComputedStyle(x).position !== "fixed") fail.push("card did not go back to fixed"); x.remove(); }
+  { // edge swipe: starts within edge_width px of the left edge and moves right -> hass-toggle-menu (and no paging); other starts do nothing; edge_width 0 = off
+    const swipe = async (x, opts, x0, y0, x1, y1) => {
+      const c = document.createElement("endless-pager-card"); c.setConfig({top: "0px", pages: [{title: "A"}, {title: "B"}], ...opts}); document.body.appendChild(c); await wait(600);
+      let n = 0, open = null, prevented = false; c.addEventListener("hass-toggle-menu", (e) => { n++; open = e.detail && e.detail.open; });
+      const t = (cx, cy) => new Touch({identifier: 1, target: c._vp, clientX: cx, clientY: cy});
+      c._vp.dispatchEvent(new TouchEvent("touchstart", {touches: [t(x0, y0)], bubbles: true, cancelable: true}));
+      const mv = new TouchEvent("touchmove", {touches: [t(x1, y1)], bubbles: true, cancelable: true}); c._vp.dispatchEvent(mv); prevented = mv.defaultPrevented;
+      c._vp.dispatchEvent(new TouchEvent("touchend", {touches: [], bubbles: true, cancelable: true}));
+      c.remove(); return {n, open, prevented};
+    };
+    let r = await swipe(0, {}, 5, 300, 30, 304); if (r.n !== 1 || r.open !== true || !r.prevented) fail.push("edge swipe did not open the menu: " + JSON.stringify(r));
+    r = await swipe(0, {}, 100, 300, 130, 304); if (r.n) fail.push("a swipe far from the edge opened the menu");
+    r = await swipe(0, {}, 5, 300, 8, 340); if (r.n) fail.push("a vertical start at the edge opened the menu");
+    r = await swipe(0, {edge_width: 0}, 5, 300, 30, 304); if (r.n) fail.push("edge_width 0 did not turn it off");
+    r = await swipe(0, {edge_width: 50}, 40, 300, 65, 304); if (r.n !== 1) fail.push("edge_width 50 did not widen the zone: " + JSON.stringify(r));
+    r = await swipe(0, {}, 40, 300, 65, 304); if (r.n) fail.push("default zone is wider than 24 px");
+  }
   { const ed = C.getConfigElement(), got = []; ed.addEventListener("config-changed", (e) => got.push(e.detail.config)); document.body.appendChild(ed);
     ed.setConfig({type: "custom:endless-pager-card", pages: [{type: "markdown", content: "<img src=x onerror=window.__x=3>"}, {type: "markdown", content: "B"}]});
     const btns = () => [...ed.shadowRoot.querySelectorAll(".row button")], q = (c) => ed.shadowRoot.querySelector(c);   // each row has 4 buttons: edit, up, down, delete

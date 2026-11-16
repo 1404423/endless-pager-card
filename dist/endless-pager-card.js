@@ -13,7 +13,7 @@ class EndlessPagerCard extends HTMLElement {
   static getConfigElement() { return document.createElement("endless-pager-card-editor"); }
   static getConfigForm() {             // the visual editor (Home Assistant's own form); `pages` is a YAML box in it (the list of card configurations)
     const num = (name, min, max) => ({ name, selector: { number: { min, max, mode: "box" } } });
-    const labels = { pages: "Pages (list of cards)", loop: "Endless paging", top: "Top offset (CSS length)", slots: "Strip length (slots)", build_radius: "Build radius", keep_radius: "Keep radius", debug: "Debug panel" };
+    const labels = { pages: "Pages (list of cards)", loop: "Endless paging", top: "Top offset (CSS length)", slots: "Strip length (slots)", build_radius: "Build radius", keep_radius: "Keep radius", debug: "Debug panel", edge_width: "Left-edge swipe (px, 0 = off)" };
     const helpers = {
       pages: "One card configuration per page, as a YAML list. Add an item to add a page.",
       loop: "Off = a normal strip with two ends. Default: on.",
@@ -22,6 +22,7 @@ class EndlessPagerCard extends HTMLElement {
       build_radius: "Cards are built for the slots this close to the current one. Default: 3.",
       keep_radius: "Cards farther away are dropped again to free memory. Default: 8.",
       debug: "Shows a small panel with slot, cards alive and scroll position.",
+      edge_width: "A swipe to the right that starts this many pixels from the left edge opens the Home Assistant sidebar instead of paging. 0 = off. Default: 24.",
     };
     return {
       schema: [
@@ -30,6 +31,7 @@ class EndlessPagerCard extends HTMLElement {
         { name: "top", selector: { text: {} } },
         num("slots", 20, 2000), num("build_radius", 1, 10), num("keep_radius", 2, 30),
         { name: "debug", selector: { boolean: {} } },
+        num("edge_width", 0, 60),
       ],
       computeLabel: (schema) => labels[schema.name] || schema.name,
       computeHelper: (schema) => helpers[schema.name],
@@ -100,6 +102,21 @@ class EndlessPagerCard extends HTMLElement {
     vp.addEventListener("pointerdown", () => { this._down = true; act(); }, { capture: true, passive: true });
     const up = () => { this._down = false; act(); };
     vp.addEventListener("pointerup", up, { capture: true, passive: true }); vp.addEventListener("pointercancel", up, { capture: true, passive: true });
+    const W = this._config.edge_width ?? 24;
+    if (W > 0) {                                                    // a swipe to the right that starts at the left edge opens the HA sidebar (instead of paging)
+      let e = null;
+      const end = () => { e = null; };
+      vp.addEventListener("touchstart", (ev) => { const t = ev.touches[0]; e = ev.touches.length === 1 && t.clientX <= W ? { x: t.clientX, y: t.clientY, done: false } : null; }, { capture: true, passive: true });
+      vp.addEventListener("touchmove", (ev) => {
+        if (!e || e.done) return;
+        const t = ev.touches[0], dx = t.clientX - e.x, dy = t.clientY - e.y;
+        if (dx > 3 && dx > Math.abs(dy) * 1.5) {                                        // decided on the first moves, while the browser can still be told not to scroll
+          e.done = true; if (ev.cancelable) ev.preventDefault();
+          this.dispatchEvent(new CustomEvent("hass-toggle-menu", { bubbles: true, composed: true, detail: { open: true } }));
+        } else if (Math.abs(dy) > 8) e = null;                                          // mostly vertical: a normal scroll
+      }, { capture: true, passive: false });
+      vp.addEventListener("touchend", end, { capture: true, passive: true }); vp.addEventListener("touchcancel", end, { capture: true, passive: true });
+    }
     this._ro = new ResizeObserver(() => {
       const w = vp.clientWidth;
       if (!w) { this._hidden = true; return; }

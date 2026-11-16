@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.0 (2026-11-16)
+* New option `edge_width` (default 24, `0` = off, also in the card editor): a swipe to the right that starts within `edge_width` px of the left edge opens the Home Assistant sidebar (`hass-toggle-menu`) instead of paging. **On by default**: with the default a swipe that starts within the first 24 px no longer pages; set `edge_width: 0` to get the old behaviour.
+
 ## 1.1.0 (2026-10-25)
 * Visual editor: the pages are a list with add, delete, move and edit buttons (the edit button opens the YAML of that one page under its row; all pages as YAML stay available in a fold); `loop`, `top`, `slots`, `build_radius`, `keep_radius` and `debug` can be changed in the card editor (Home Assistant's own form).
 * The card picker adds the card with two small example pages (`getStubConfig`), instead of an error about missing `pages`.

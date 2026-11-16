@@ -58,7 +58,17 @@ All options can also be changed in the card editor. There the pages are a list w
 | `slots` | `200` | Length of the strip when looping (about this many slots; you start in the middle) |
 | `build_radius` | `3` | Cards are built for the slots within this distance of the current one |
 | `keep_radius` | `8` | Cards farther away than this are dropped again (frees memory) |
+| `edge_width` | `24` | A swipe to the right that starts within this many pixels of the left edge opens the Home Assistant sidebar (it fires `hass-toggle-menu`) instead of paging. `0` turns it off |
 | `debug` | `false` | Shows a small panel with slot, cards alive, scroll position (useful when reporting a problem) |
+
+### Edge swipe (open the sidebar)
+A swipe to the right that starts at the very left edge of the screen opens the Home Assistant sidebar, the same as the menu button. It is on by default with `edge_width: 24` (pixels from the left edge). Set `edge_width: 0` to turn it off, or a larger number (up to 60) to make the starting zone wider. A mostly vertical start is a normal scroll, and a swipe that starts farther in pages as before. The card editor has the same field.
+
+```yaml
+type: custom:endless-pager-card
+edge_width: 0   # off
+pages: [...]
+```
 
 A page's own `position: absolute` titles (some cards use them) are anchored to the page, so every page keeps its own title.
 
